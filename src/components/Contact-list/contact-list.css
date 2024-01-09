@@ -1,0 +1,17 @@
+.contacts 
+{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.contacts ul
+{
+  padding: 0 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style-type: disc;
+}
+.item button {
+  margin-left: 15px;
+}
