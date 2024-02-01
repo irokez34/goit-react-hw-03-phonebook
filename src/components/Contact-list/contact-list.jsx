@@ -1,14 +1,19 @@
-import './contact-list.css';
-const ContactList = ({ contacts, handleClick }) => {
-  const contactlist = contacts.map(contact => (
-    <li className="item" key={contact.id}>
-      <span>{contact.name}</span>:<span> {contact.number}</span>
-      <button on onClick={() => handleClick(contact.id)}>Delete</button>
+import css from './Contact-list.module.css';
+import React from 'react';
+const ContactList = ({ contacts, handleDelete }) => {
+  const contactlist = contacts.map(({ id, name, number }) => (
+    <li className={css.item} key={id}>
+      <span>
+        {name}: {number}
+      </span>
+      <button onClick={() => handleDelete(id)} className={css.button}>
+        Delete
+      </button>
     </li>
   ));
   return (
-    <div className="contacts">
-      <ul>{contactlist}</ul>
+    <div className={css.container}>
+      <ul className={css.list}>{contactlist}</ul>
     </div>
   );
 };

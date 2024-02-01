@@ -4,6 +4,7 @@ import ContactList from './Contact-list/contact-list';
 import Filter from './Filter/filter';
 import { nanoid } from 'nanoid';
 import NotificationMessage from './notification-message/NotificationMessage';
+
 export class App extends React.Component {
   state = {
     contacts: [
@@ -14,45 +15,47 @@ export class App extends React.Component {
     ],
     filter: '',
   };
-
+  componentDidMount() {
+    if (localStorage.getItem('contacts')) {
+      this.setState({ contacts: JSON.parse(localStorage.getItem('contacts')) });
+    }
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.contacts !== prevState.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    }
+  }
   sendContactData = data => {
-    const isContact = this.state.contacts.find(el => el.number === data.number);
-    if (isContact) return alert('Контакт Існує');
     const userData = { ...data, id: nanoid() };
-    const contactsFromLocalStorage =
-      JSON.parse(localStorage.getItem('contactsList')) || [];
-    const updatedContacts = [...contactsFromLocalStorage, userData];
 
-    localStorage.setItem('contactsList', JSON.stringify(updatedContacts));
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, userData],
-    }));
+    this.state.contacts.find(
+      contact => contact.name.toLowerCase() === data.name.toLowerCase()
+    )
+      ? alert(data.name + ' is already in contacts')
+      : this.setState(prevState => ({
+          contacts: [userData, ...prevState.contacts],
+        }));
   };
   deleteContact = id => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(el => el.id !== id),
-    }));
-    const contactsFromLocalStorage =
-      JSON.parse(localStorage.getItem('contactsList')) || [];
-    const updatedContacts = [
-      ...contactsFromLocalStorage.filter(el => el.id !== id),
-    ];
-    localStorage.setItem('contactsList', JSON.stringify(updatedContacts));
+    const FilterContacts = this.state.contacts.filter(
+      contact => contact.id !== id
+    );
+    this.setState({
+      contacts: [...FilterContacts],
+    });
   };
 
   filterContact = ({ target: { value } }) => {
     this.setState({
-      filter: value.toString(),
+      filter: value,
     });
   };
 
   render() {
-    const filteredContacts = JSON.parse(
-      localStorage.getItem('contactsList')
-    ).filter(contact =>
-      contact.name.toLowerCase().includes(this.state.filter.toLowerCase())
+    const filterToLowerCase = this.state.filter.toLowerCase();
+    const filterContact = this.state.contacts.filter(({ name }) =>
+      name.toLowerCase().includes(filterToLowerCase)
     );
-
     return (
       <div
         style={{
@@ -64,20 +67,25 @@ export class App extends React.Component {
         }}
       >
         <h1>PhoneBook</h1>
-        <FormInput
-          change={this.handleChange}
-          sendContactData={this.sendContactData}
-        />
-        <h2>Contacts</h2>
-        <Filter change={this.filterContact} />
-        {filteredContacts.length === 0 ? (
-          <NotificationMessage message={`No contact ${this.state.filter}`} />
+        <FormInput sendContactData={this.sendContactData} />
+        {this.state.contacts.length ? (
+          <h2 className="title">Contacts</h2>
         ) : (
-          <ContactList
-            contacts={JSON.parse(localStorage.getItem('contactsList'))}
-            handleClick={this.deleteContact}
-          />
+          <></>
         )}
+
+        {this.state.contacts.length ? (
+          <Filter value={this.state.filter} onChange={this.filterContact} />
+        ) : (
+          <></>
+        )}
+         {filterContact.length === 0 ? (
+          <NotificationMessage message={`No contact ${this.state.filter}`} />
+        ) : (<></>)}
+        <ContactList
+          contacts={filterContact}
+          handleDelete={this.deleteContact}
+        />
       </div>
     );
   }
